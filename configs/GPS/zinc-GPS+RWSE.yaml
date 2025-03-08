@@ -4,6 +4,8 @@ metric_agg: argmin
 wandb:
   use: True
   project: ZINC
+  entity: dongweilyu-The University of Chicago
+  name: dongweilyu
 dataset:
   format: PyG-ZINC
   name: subset
@@ -58,7 +60,8 @@ optim:
   clip_grad_norm: True
   optimizer: adamW
   weight_decay: 1e-5
-  base_lr: 0.001
+  base_lr: 1e-3
   max_epoch: 2000
-  scheduler: cosine_with_warmup
   num_warmup_epochs: 50
+  scheduler: cosine_with_warmup
+  min_lr: 1e-6

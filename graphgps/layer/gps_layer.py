@@ -7,7 +7,7 @@ from performer_pytorch import SelfAttention
 from torch_geometric.data import Batch
 from torch_geometric.nn import Linear as Linear_pyg
 from torch_geometric.utils import to_dense_batch
-
+from graphgps.layer.s4d_layer import S4Block
 from graphgps.layer.bigbird_layer import SingleBigBirdLayer
 from graphgps.layer.gatedgcn_layer import GatedGCNLayer
 from graphgps.layer.gine_conv_layer import GINEConvESLapPE
@@ -117,6 +117,8 @@ class GPSLayer(nn.Module):
             bigbird_cfg.n_heads = num_heads
             bigbird_cfg.dropout = dropout
             self.self_attn = SingleBigBirdLayer(bigbird_cfg)
+        elif global_model_type == "ssm":
+            self.self_attn = S4Block(dim_h,dropout=self.attn_dropout)
         else:
             raise ValueError(f"Unsupported global x-former model: "
                              f"{global_model_type}")
@@ -155,7 +157,6 @@ class GPSLayer(nn.Module):
     def forward(self, batch):
         h = batch.x
         h_in1 = h  # for first residual connection
-
         h_out_list = []
         # Local MPNN with edge attributes.
         if self.local_model is not None:
@@ -206,6 +207,9 @@ class GPSLayer(nn.Module):
                 h_attn = self.self_attn(h_dense, mask=mask)[mask]
             elif self.global_model_type == 'BigBird':
                 h_attn = self.self_attn(h_dense, attention_mask=mask)
+            elif self.global_model_type == 'ssm':
+                h_attn, _ = self.self_attn(h_dense)
+                h_attn = h_attn[mask]
             else:
                 raise RuntimeError(f"Unexpected {self.global_model_type}")
 

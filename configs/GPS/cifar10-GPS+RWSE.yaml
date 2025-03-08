@@ -3,6 +3,8 @@ metric_best: accuracy
 wandb:
   use: True
   project: CIFAR10
+  entity: dongweilyu-The University of Chicago
+  name: dongweilyu
 dataset:
   format: PyG-GNNBenchmarkDataset
   name: CIFAR10
@@ -33,7 +35,7 @@ model:
   edge_decoding: dot
   graph_pooling: mean
 gt:  # Hyperparameters optimized for ~100k budget.
-  layer_type: CustomGatedGCN+Transformer
+  layer_type: CustomGatedGCN+ssm
   layers: 3
   n_heads: 4
   dim_hidden: 52  # `gt.dim_hidden` must match `gnn.dim_inner`
@@ -54,8 +56,8 @@ gnn:
 optim:
   clip_grad_norm: True
   optimizer: adamW
-  weight_decay: 1e-5
-  base_lr: 0.001
+  weight_decay: 5e-4
+  base_lr: 1e-4
   max_epoch: 100
   scheduler: cosine_with_warmup
-  num_warmup_epochs: 5
+  num_warmup_epochs: 10

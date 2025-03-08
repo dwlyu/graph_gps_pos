@@ -3,6 +3,8 @@ metric_best: accuracy-SBM
 wandb:
   use: True
   project: CLUSTER
+  entity: dongweilyu-The University of Chicago
+  name: GCN
 dataset:
   format: PyG-GNNBenchmarkDataset
   name: CLUSTER

@@ -4,7 +4,7 @@ wandb:
   use: True
   project: MNIST
   entity: dongweilyu-The University of Chicago
-  name: GCN
+  name: PAN
 dataset:
   format: PyG-GNNBenchmarkDataset
   name: MNIST
@@ -38,7 +38,7 @@ model:
   edge_decoding: dot
   graph_pooling: mean
 gt:  # Hyperparameters optimized for ~100k budget.
-  layer_type: CustomGatedGCN+Transformer
+  layer_type: PNA+Transformer
   layers: 3
   n_heads: 4
   dim_hidden: 52  # `gt.dim_hidden` must match `gnn.dim_inner`

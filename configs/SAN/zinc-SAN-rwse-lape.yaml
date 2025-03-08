@@ -5,7 +5,7 @@ wandb:
   use: True
   project: ZINC_ablation
   entity: dongweilyu-The University of Chicago
-  name: SAN_LAPE
+  name: SAN_rwse_lape
 dataset:
   format: PyG-ZINC
   name: subset
@@ -13,7 +13,7 @@ dataset:
   task_type: regression
   transductive: False
   node_encoder: True
-  node_encoder_name: TypeDictNode+LapPE
+  node_encoder_name: TypeDictNode+LapPE+RWSE
   node_encoder_num_types: 28
   node_encoder_bn: False
   edge_encoder: True
@@ -31,6 +31,13 @@ posenc_LapPE:
   layers: 2
   n_heads: 4  # Only used when `posenc.model: Transformer`
   raw_norm_type: none
+posenc_RWSE:
+  enable: True
+  kernel:
+    times_func: range(1,21)
+  model: Linear
+  dim_pe: 28
+  raw_norm_type: BatchNorm
 train:
   mode: custom
   batch_size: 64
@@ -62,7 +69,7 @@ gnn:
   agg: mean
   normalize_adj: False
 optim:
-  optimizer: adam
+  clip_grad_norm: True
   optimizer: adamW
   weight_decay: 1e-5
   base_lr: 1e-3

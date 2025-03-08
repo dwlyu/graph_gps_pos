@@ -142,6 +142,8 @@ if __name__ == '__main__':
         loaders = create_loader()
         loggers = create_logger()
         model = create_model()
+        device = next(model.parameters()).device
+        print(device)
         if cfg.pretrained.dir:
             model = init_model_from_pretrained(
                 model, cfg.pretrained.dir, cfg.pretrained.freeze_main,

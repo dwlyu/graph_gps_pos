@@ -3,6 +3,8 @@ metric_best: f1
 wandb:
   use: True
   project: COCO
+  entity: dongweilyu-The University of Chicago
+  name: dongweilyu
 dataset:
   format: PyG-COCOSuperpixels
   name: edge_wt_region_boundary

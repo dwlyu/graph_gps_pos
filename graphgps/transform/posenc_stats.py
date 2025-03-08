@@ -8,19 +8,19 @@ from torch_geometric.utils import (get_laplacian, to_scipy_sparse_matrix,
                                    to_undirected, to_dense_adj, scatter)
 from torch_geometric.utils.num_nodes import maybe_num_nodes
 from graphgps.encoder.graphormer_encoder import graphormer_pre_processing
+from functools import partial
+from .rrwp import add_full_rrwp
 
 
 def compute_posenc_stats(data, pe_types, is_undirected, cfg):
     """Precompute positional encodings for the given graph.
-
     Supported PE statistics to precompute, selected by `pe_types`:
     'LapPE': Laplacian eigen-decomposition.
     'RWSE': Random walk landing probabilities (diagonals of RW matrices).
     'HKfullPE': Full heat kernels and their diagonals. (NOT IMPLEMENTED)
     'HKdiagSE': Diagonals of heat kernel diffusion.
     'ElstaticSE': Kernel based on the electrostatic interaction between nodes.
-    'Graphormer': Computes spatial types and optionally edges along shortest paths.
-
+    'RRWP': Relative Random Walk Probabilities PE (Ours, for GRIT)
     Args:
         data: PyG graph
         pe_types: Positional encoding types to precompute statistics for.
@@ -33,8 +33,8 @@ def compute_posenc_stats(data, pe_types, is_undirected, cfg):
     """
     # Verify PE types.
     for t in pe_types:
-        if t not in ['LapPE', 'EquivStableLapPE', 'SignNet', 'RWSE', 'HKdiagSE',
-                     'HKfullPE', 'ElstaticSE', 'GraphormerBias']:
+        if t not in ['LapPE', 'EquivStableLapPE', 'SignNet',
+                     'RWSE', 'HKdiagSE', 'HKfullPE', 'ElstaticSE','RRWP']:
             raise ValueError(f"Unexpected PE stats selection {t} in {pe_types}")
 
     # Basic preprocessing of the input graph.
@@ -136,11 +136,16 @@ def compute_posenc_stats(data, pe_types, is_undirected, cfg):
         elstatic = get_electrostatic_function_encoding(undir_edge_index, N)
         data.pestat_ElstaticSE = elstatic
 
-    if 'GraphormerBias' in pe_types:
-        data = graphormer_pre_processing(
-            data,
-            cfg.posenc_GraphormerBias.num_spatial_types
-        )
+    if 'RRWP' in pe_types:
+        param = cfg.posenc_RRWP
+        transform = partial(add_full_rrwp,
+                            walk_length=param.ksteps,
+                            attr_name_abs="rrwp",
+                            attr_name_rel="rrwp",
+                            add_identity=True,
+                            spd=param.spd, # by default False
+                            )
+        data = transform(data)
 
     return data
 

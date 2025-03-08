@@ -25,6 +25,9 @@ from graphgps.transform.task_preprocessing import task_specific_preprocessing
 from graphgps.transform.transforms import (pre_transform_in_memory,
                                            typecast_x, concat_x_and_pos,
                                            clip_graphs_to_size)
+import torch_geometric
+import argparse
+from graphgps.IGBDatasets.igb.dataloader import IGB260MDGLDataset
 
 
 def log_loaded_dataset(dataset, format, name):
@@ -97,6 +100,7 @@ def load_dataset_master(format, name, dataset_dir):
     Returns:
         PyG dataset object with applied perturbation transforms and data splits
     """
+    dataset_dir = "/pscratch/sd/d/dwlyu/graphgps"
     if format.startswith('PyG-'):
         pyg_dataset_id = format.split('-', 1)[1]
         dataset_dir = osp.join(dataset_dir, pyg_dataset_id)
@@ -120,6 +124,23 @@ def load_dataset_master(format, name, dataset_dir):
 
         elif pyg_dataset_id == 'WebKB':
             dataset = WebKB(dataset_dir, name)
+
+        elif pyg_dataset_id == 'IGB':
+            parser_1 = argparse.ArgumentParser()
+            parser_1.add_argument('--path', type=str, default="/pscratch/sd/d/dwlyu/tiny", 
+                help='path containing the datasets')
+            parser_1.add_argument('--dataset_size', type=str, default='tiny',
+                choices=['tiny', 'small', 'medium', 'large', 'full'], 
+                help='size of the datasets')
+            parser_1.add_argument('--num_classes', type=int, default=19, 
+                choices=[19, 2983], help='number of classes')
+            parser_1.add_argument('--in_memory', type=int, default=1, 
+                choices=[0, 1], help='0:read only mmap_mode=r, 1:load into memory')
+            parser_1.add_argument('--synthetic', type=int, default=0,
+                choices=[0, 1], help='0:nlp-node embeddings, 1:random')
+
+            args_1 = parser_1.parse_args()
+            dataset = IGB260MDGLDataset(args=args_1)
 
         elif pyg_dataset_id == 'WikipediaNetwork':
             if name == 'crocodile':
@@ -246,7 +267,9 @@ def compute_indegree_histogram(dataset):
 
     deg = torch.zeros(1000, dtype=torch.long)
     max_degree = 0
-    for data in dataset:
+    if isinstance(dataset, torch_geometric.data.Data):  # Single graph case
+        dataset = [dataset]
+    for data in list(dataset):
         d = degree(data.edge_index[1],
                    num_nodes=data.num_nodes, dtype=torch.long)
         max_degree = max(max_degree, d.max().item())
